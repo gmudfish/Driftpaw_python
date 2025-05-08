@@ -327,6 +327,25 @@ quantities = [2, 1, 3]
 print(list(calculate_totals_functional(prices, quantities)))  # [20, 20, 90]
 </div>
 
+            
+<div class="code-block">
+# Imperative approach (how to do it)
+def calculate_totals_imperative(prices, quantities):
+    totals = []
+    for i in range(len(prices)):
+        totals.append(prices[i] * quantities[i])
+    return totals
+
+# Functional approach (what to do)
+def calculate_totals_functional(prices, quantities):
+    return map(lambda p, q: p * q, prices, quantities)
+
+# Usage
+prices = [10, 20, 30]
+quantities = [2, 1, 3]
+print(list(calculate_totals_functional(prices, quantities)))  # [20, 20, 90]
+</div>
+
 <h3>Why Embrace Functional Programming?</h3>
 
 <p>Like different tree species offering unique benefits to the forest, functional programming brings several advantages to our code:</p>
