@@ -1,1 +1,331 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 7: Functional Programming in Python</title>
+    <style>
+        :root {
+            --forest-green: #2E7D32;
+            --leaf-green: #81C784;
+            --light-moss: #E8F5E9;
+            --bark-brown: #5D4037;
+            --sloth-gray: #9E9E9E;
+            --deep-forest: #1B5E20;
+            --sunlight: #FFF9C4;
+            --water-blue: #B3E5FC;
+            --code-bg: #F5F5F5;
+            --prompt-bg: #EDE7F6;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: var(--light-moss);
+            margin: 0;
+            padding: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%2381c784' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0;
+            background-color: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(to bottom right, var(--forest-green), var(--deep-forest));
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin: 0 0 1rem 0;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        h2 {
+            color: var(--forest-green);
+            border-bottom: 2px solid var(--leaf-green);
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        h3 {
+            color: var(--bark-brown);
+            margin-top: 2rem;
+        }
+        
+        .chapter-number {
+            display: block;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .driftpaw-section {
+            font-style: italic;
+            background-color: rgba(129, 199, 132, 0.15);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--leaf-green);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .driftpaw-section::after {
+            content: "🦥";
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 2.5rem;
+            opacity: 0.7;
+        }
+        
+        .code-block {
+            background-color: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            font-family: monospace;
+            overflow-x: auto;
+            position: relative;
+            border-left: 4px solid var(--forest-green);
+        }
+        
+        .code-block::before {
+            content: "Code Example";
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background-color: var(--forest-green);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: sans-serif;
+        }
+        
+        .ai-prompt-box {
+            background-color: var(--prompt-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            position: relative;
+            border-left: 4px solid #673AB7;
+        }
+        
+        .ai-prompt-box::before {
+            content: "AI Prompt Tip";
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background-color: #673AB7;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .forest-path {
+            background-color: rgba(139, 195, 74, 0.15);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            position: relative;
+            border-left: 4px solid #8BC34A;
+        }
+        
+        .forest-path::before {
+            content: "Forest Path Exercise";
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background-color: #8BC34A;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .slow-wisdom {
+            background-color: rgba(93, 64, 55, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            position: relative;
+            border-left: 4px solid var(--bark-brown);
+        }
+        
+        .slow-wisdom::before {
+            content: "Slow Wisdom";
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background-color: var(--bark-brown);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .emoji {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        
+        .comparison-table th {
+            background-color: var(--forest-green);
+            color: white;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: rgba(129, 199, 132, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            color: var(--sloth-gray);
+            font-style: italic;
+            margin-top: 3rem;
+            padding: 2rem;
+            border-top: 1px solid var(--leaf-green);
+            background-color: rgba(232, 245, 233, 0.5);
+        }
+        
+        .sloth-icon {
+            font-size: 1.8rem;
+            margin: 0 0.4rem;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--leaf-green);
+        }
+        
+        .nav-button {
+            display: inline-block;
+            background-color: var(--forest-green);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                width: auto;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-bg"></div>
+            <span class="chapter-number">Chapter 7</span>
+            <h1>Functional Programming in Python</h1>
+        </header>
+        
+        <div class="content">
+            <div class="driftpaw-section">
+                <p>~ Welcome, gentle wanderer, to a misty grove where functions hang like vines from ancient trees. Today we explore a different way of seeing our code landscape—functional programming—where ideas flow like clear streams and transformation is the quiet heartbeat of all creation. ~</p>
+                
+                <p>~ In this forest clearing, we'll discover how Python—though not purely functional by birth—can express these elegant patterns with surprising grace. Like a sloth that occasionally climbs down to swim, Python moves between paradigms with thoughtful patience... ~</p>
+            </div>
+            
+            <h2><span class="emoji">🌿</span>7.1 Functional Programming Principles</h2>
+            
+            <!-- Section 7.1 content will go here -->
+            
+            <h2><span class="emoji">🍃</span>7.2 Lambda Functions and Anonymous Operations</h2>
+            
+            <!-- Section 7.2 content will go here -->
+            
+            <h2><span class="emoji">🌱</span>7.3 Map, Filter, and Reduce</h2>
+            
+            <!-- Section 7.3 content will go here -->
+            
+            <h2><span class="emoji">🌳</span>7.4 List Comprehensions and Generator Expressions</h2>
+            
+            <!-- Section 7.4 content will go here -->
+            
+            <h2><span class="emoji">🍄</span>7.5 Pure Functions and Side Effects</h2>
+            
+            <!-- Section 7.5 content will go here -->
+            
+            <h2><span class="emoji">🦊</span>7.6 AI-Assisted Functional Programming Examples</h2>
+            
+            <!-- Section 7.6 content will go here -->
+            
+            <div class="driftpaw-section" style="margin-top: 3rem;">
+                <p>~ As we gently swing away from this chapter, remember that functional programming isn't about abandoning what you know, but about seeing the forest from a different bough. Sometimes constraints bring freedom—like how my three-toed grasp lets me hang upside down for days—and the discipline of pure functions can paradoxically unlock the most creative solutions... ~</p>
+                
+                <p>~ In our next wandering, we'll explore how to catch falling errors before they disturb the forest floor. But for now, perhaps practice transforming some data streams with these newfound functional paws... ~</p>
+            </div>
+            
+            <div class="navigation">
+                <a href="#chapter6" class="nav-button">« Previous: Object-Oriented Python</a>
+                <a href="#chapter8" class="nav-button">Next: Exception Handling and Debugging »</a>
+            </div>
+        </div>
+        
+        <footer>
+            <p><span class="sloth-icon">🦥</span> <span class="sloth-icon">💤</span> <span class="sloth-icon">🌿</span> <span class="sloth-icon">🍃</span> <span class="sloth-icon">🌳</span> <span class="sloth-icon">🌱</span> <span class="sloth-icon">🍂</span> <span class="sloth-icon">🕸️</span> <span class="sloth-icon">🍄</span></p>
+            <p>© 2025 Python Learning with AI Assistance</p>
+        </footer>
+    </div>
+</body>
+</html>
