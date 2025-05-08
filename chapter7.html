@@ -108,29 +108,33 @@
             opacity: 0.7;
         }
         
-        .code-block {
-            background-color: var(--code-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            font-family: monospace;
-            overflow-x: auto;
-            position: relative;
-            border-left: 4px solid var(--forest-green);
-        }
-        
-        .code-block::before {
-            content: "Code Example1";
-            position: absolute;
-            top: -12px;
-            left: 15px;
-            background-color: var(--forest-green);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-family: sans-serif;
-        }
+      .code-block {
+    background-color: var(--code-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    font-family: monospace;
+    overflow-x: auto;
+    position: relative;
+    border-left: 4px solid var(--forest-green);
+    white-space: pre;  /* This preserves formatting */
+    line-height: 1.5;  /* Better line spacing */
+}
+
+.code-block::before {
+    content: "Code Example";
+    position: absolute;
+    top: -12px;
+    left: 15px;
+    background-color: var(--forest-green);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-family: sans-serif;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
         
         .ai-prompt-box {
             background-color: var(--prompt-bg);
