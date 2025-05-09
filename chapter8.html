@@ -1742,7 +1742,165 @@ class CorruptedDataError(DataError):
 </div>
 
 <div class="ai-prompt-box">
-    <p><strong>Ask your AI assistant:</strong> "I'm working on a library for [your domain
+    <p><strong>Ask your AI assistant:</strong> "I'm working on a library for [your domain, e.g., 'image processing', 'financial analysis', etc.]. Help me design a comprehensive exception hierarchy for my library. I want users to be able to catch specific error types while still having the option to catch broader categories. Include examples of how each exception would be raised and caught, and suggest what context information each exception should carry."</p>
+    
+    <p><strong>Why this works:</strong> This prompt helps you think through your application's error model holistically. By focusing on your specific domain, the AI can suggest a tailored exception hierarchy that reflects the types of errors that might occur in your system. The request for both raising and catching examples helps you visualize how the exceptions will work in practice.</p>
+</div>
+
+<h3>Converting Between Exception Types</h3>
+
+<p>Sometimes you might need to convert between different exception types while preserving the original context. Python provides several approaches for this:</p>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+# 1. Exception chaining with "from"
+try:
+    # Some operation that might raise ValueError
+    tree_height = float(height_data)
+except ValueError as e:
+    # Convert to domain exception while preserving original cause
+    raise TreeDataError("Invalid tree height data") from e
+
+# 2. Exception wrapping in a custom exception
+class ApiError(Exception):
+    """Wraps errors that occur during API operations."""
+    
+    def __init__(self, message, original_exception=None):
+        super().__init__(message)
+        self.original_exception = original_exception
+
+# Using the wrapper
+try:
+    response = api.get_forest_data()
+except requests.RequestException as e:
+    raise ApiError("Failed to fetch forest data", e)
+
+# 3. Translating exceptions at module boundaries
+def get_tree_density(forest_id):
+    """
+    Get the tree density for a forest.
+    
+    Args:
+        forest_id: The ID of the forest
+        
+    Returns:
+        The number of trees per square kilometer
+        
+    Raises:
+        ForestNotFoundError: If the forest cannot be found
+        DensityCalculationError: If density cannot be calculated
+    """
+    try:
+        forest = database.get_forest(forest_id)
+        if not forest:
+            raise ForestNotFoundError(forest_id)
+            
+        try:
+            area = calculate_area(forest.boundaries)
+            return forest.tree_count / area
+        except ZeroDivisionError as e:
+            raise DensityCalculationError("Forest has zero area") from e
+        except ValueError as e:
+            raise DensityCalculationError("Invalid measurement data") from e
+    except DatabaseError as e:
+        # Translate database errors to domain errors
+        if "connection" in str(e).lower():
+            raise ServiceUnavailableError("Database connection failed") from e
+        else:
+            raise DataAccessError(f"Database error: {e}") from e
+</pre>
+  </div>
+</div>
+
+<p>By thoughtfully converting between exception types, you can create cleaner interfaces between layers of your application while still preserving the full error context for debugging.</p>
+
+<h3>Testing Custom Exceptions</h3>
+
+<p>When you create custom exceptions, it's important to test that they're raised correctly and contain the expected information. Here's how to test custom exceptions:</p>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+# Using unittest
+import unittest
+from forest_management.exceptions import UnknownSpeciesError
+from forest_management.planting import plant_tree
+
+class PlantingTests(unittest.TestCase):
+    
+    def test_unknown_species_raises_error(self):
+        # Test that the right exception type is raised
+        with self.assertRaises(UnknownSpeciesError):
+            plant_tree("NonexistentTree", (10, 20))
+    
+    def test_unknown_species_error_contains_species_name(self):
+        # Test that the exception contains the expected information
+        unknown_species = "MagicalTree"
+        try:
+            plant_tree(unknown_species, (10, 20))
+            self.fail("Expected UnknownSpeciesError was not raised")
+        except UnknownSpeciesError as e:
+            self.assertEqual(e.species, unknown_species)
+            self.assertIn(unknown_species, str(e))
+
+# Using pytest
+import pytest
+from forest_management.exceptions import OutOfBoundsError
+from forest_management.navigation import find_path
+
+def test_out_of_bounds_exception():
+    # Test with pytest
+    boundaries = (0, 0, 100, 100)
+    out_of_bounds = (150, 150)
+    
+    with pytest.raises(OutOfBoundsError) as excinfo:
+        find_path((10, 10), out_of_bounds, boundaries)
+    
+    # Check that the exception has the expected attributes
+    assert excinfo.value.location == out_of_bounds
+    assert excinfo.value.boundaries == boundaries
+    # Check that the message is formatted correctly
+    assert "outside forest boundaries" in str(excinfo.value)
+</pre>
+  </div>
+</div>
+
+<div class="forest-path">
+    <h4>Forest Path Exercise: Creating a Custom Exception Hierarchy</h4>
+    <p>In this exercise, you'll design and implement a custom exception hierarchy for a forest mapping application that tracks various aspects of a forest ecosystem.</p>
+    
+    <p><strong>Scenario:</strong> Your application needs to handle various errors related to:</p>
+    <ul>
+        <li>Species identification and classification</li>
+        <li>Geographic mapping and boundaries</li>
+        <li>Climate and environmental data</li>
+        <li>User permissions and authentication</li>
+    </ul>
+    
+    <p><strong>Tasks:</strong></p>
+    <ol>
+        <li>Design a base exception and at least three category exceptions</li>
+        <li>Create at least two specific exceptions under each category</li>
+        <li>Implement constructors that capture relevant context</li>
+        <li>Add helpful methods to the exceptions where appropriate</li>
+        <li>Write docstrings for each exception class</li>
+        <li>Create example code showing how to raise and handle these exceptions</li>
+        <li>Implement at least one example of exception chaining</li>
+    </ol>
+    
+    <p><strong>Bonus challenge:</strong> Organize your exceptions in a dedicated module and create a visual diagram of the hierarchy.</p>
+</div>
+
+<p>Custom exceptions transform error handling from a technical necessity into an expressive language that communicates the specific challenges and boundaries of your application domain. Like specialized forest creatures that have evolved to fill particular niches, your custom exceptions make your code more adaptable, more descriptive, and more resilient in the face of the unexpected.</p>
+
+<div class="driftpaw-section">
+    <p>~ When we create our own exception types, little ones, we add new words to our code's vocabulary... just as the forest has specific names for different types of rainfall—drizzle, shower, downpour, deluge—our custom exceptions give us precision in expressing what went wrong and why... ~</p>
+    
+    <p>~ This precision isn't merely aesthetic, but deeply practical... The forest thrives because each creature and plant responds differently to different conditions. Similarly, our programs become more robust when they can distinguish between types of problems and respond to each in the most appropriate way... ~</p>
+</div>
             
             <h2><span class="emoji">🔍</span>8.4 Debugging Techniques in Python</h2>
             
