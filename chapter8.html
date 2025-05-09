@@ -1019,7 +1019,341 @@ try:
     content = file.read()
     # Process content...
 finally:
-    file.close()  # Ensure the file is close
+    file.close()  # Ensure the file is closed
+
+# With context manager - automatic cleanup
+try:
+    with open("forest_data.txt", "r") as file:
+        content = file.read()
+        # Process content...
+        # No need to close the file - it happens automatically
+except FileNotFoundError:
+    print("The file was not found.")
+</pre>
+  </div>
+</div>
+
+<p>Context managers handle resources like:</p>
+<ul>
+    <li>File objects (automatically closed)</li>
+    <li>Network connections (properly disconnected)</li>
+    <li>Database transactions (committed or rolled back)</li>
+    <li>Locks (properly released)</li>
+</ul>
+
+<p>They work by implementing the <code>__enter__</code> and <code>__exit__</code> special methods, which we'll explore when we create our own context managers later.</p>
+
+<h3>When to Use Try-Except</h3>
+
+<p>While try-except blocks are powerful, they're not appropriate for every situation. Let's consider when to use them and when to use alternatives.</p>
+
+<div class="comparison-table">
+    <table>
+        <tr>
+            <th>When to Use Try-Except</th>
+            <th>When to Use Alternatives</th>
+        </tr>
+        <tr>
+            <td>When working with operations that might fail due to external factors (file I/O, network, user input)</td>
+            <td>For programming errors that indicate bugs in your code (use proper testing instead)</td>
+        </tr>
+        <tr>
+            <td>When a failure in one part shouldn't stop the entire program</td>
+            <td>When failures indicate critical problems that should stop the program</td>
+        </tr>
+        <tr>
+            <td>When you have a specific recovery strategy for the error</td>
+            <td>When you have no meaningful way to recover (let the program fail with a clear error message)</td>
+        </tr>
+        <tr>
+            <td>For operations with predictable failure modes</td>
+            <td>For "impossible" conditions that should never happen (use assertions instead)</td>
+        </tr>
+        <tr>
+            <td>When you need to convert exceptions to more appropriate types</td>
+            <td>When you should fix the root cause rather than handling symptoms</td>
+        </tr>
+    </table>
+</div>
+
+<h3>Error Handling Patterns</h3>
+
+<p>Over time, certain patterns for error handling have emerged in Python. Let's explore some of the most useful ones:</p>
+
+<h4>1. Look Before You Leap (LBYL) vs. Easier to Ask Forgiveness than Permission (EAFP)</h4>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+# LBYL (Look Before You Leap) - check conditions first
+def get_forest_density_lbyl(data):
+    if 'area' in data and 'trees' in data:
+        if data['area'] != 0:
+            return data['trees'] / data['area']
+        else:
+            return 0
+    else:
+        return 0
+
+# EAFP (Easier to Ask Forgiveness than Permission) - try it and handle exceptions
+def get_forest_density_eafp(data):
+    try:
+        return data['trees'] / data['area']
+    except (KeyError, ZeroDivisionError):
+        return 0
+</pre>
+  </div>
+</div>
+
+<p>Python generally favors the EAFP approach as it's usually more readable and avoids race conditions in some scenarios.</p>
+
+<h4>2. Reraise After Logging</h4>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+import logging
+
+def process_forest_data(filename):
+    try:
+        with open(filename, 'r') as file:
+            data = file.read()
+            # Process data...
+            return data
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {filename}")
+        raise  # Re-raise the same exception
+    except ValueError as e:
+        logging.error(f"Invalid data format in {filename}: {e}")
+        # Transform into a more appropriate exception
+        raise DataFormatError(f"The file {filename} contains invalid data") from e
+</pre>
+  </div>
+</div>
+
+<h4>3. Default Value Pattern</h4>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+def get_config_value(config, key, default=None):
+    try:
+        return config[key]
+    except (KeyError, TypeError):
+        return default
+
+# Usage
+config = {'debug': True, 'max_connections': 100}
+timeout = get_config_value(config, 'timeout', 30)  # Returns 30 if 'timeout' not in config
+</pre>
+  </div>
+</div>
+
+<h4>4. Cleanup Using Finally or With</h4>
+
+<div class="code-container">
+  <span class="code-label">Code Example</span>
+  <div class="code-block">
+<pre>
+# Ensure cleanup happens regardless of errors
+def analyze_forest_data():
+    temp_file = None
+    try:
+        temp_file = open("temp_analysis.txt", "w")
+        # Process data and write to temp file...
+        return "Analysis complete"
+    finally:
+        # This always runs, even if there's a return or exception
+        if temp_file:
+            temp_file.close()
+            import os
+            os.remove("temp_analysis.txt")  # Clean up the temporary file
+</pre>
+  </div>
+</div>
+
+<div class="ai-prompt-box">
+    <p><strong>Ask your AI assistant:</strong> "I'd like to improve my exception handling patterns in Python. Can you analyze my code below and suggest better error handling approaches? Specifically, I'd like to know if I'm following best practices, where I might be overusing try-except blocks, where I should be using them but am not, and if I'm using the EAFP approach properly."</p>
+    
+    <p><em>Include your code for analysis, especially parts with error-prone operations like file I/O, API calls, or user input.</em></p>
+    
+    <p><strong>Why this works:</strong> This prompt asks for a personalized code review focused specifically on exception handling patterns. The AI will identify both overuse and underuse of exception handling, helping you find the right balance in your actual code. By analyzing your specific patterns, you'll get advice that's directly applicable to your coding style.</p>
+</div>
+
+<h3>Common Exception Handling Mistakes</h3>
+
+<p>Let's examine some common mistakes when handling exceptions and how to avoid them:</p>
+
+<div class="error-box">
+    <h4>Catching Too Much</h4>
+    
+    <div class="code-container">
+      <span class="error-label">Error Example</span>
+      <div class="code-block error-code">
+<pre>
+# DON'T do this! Catches all exceptions, including programming errors
+try:
+    # A lot of code...
+    result = process_data(data)
+    # More code...
+except:  # Bare except clause
+    print("Something went wrong")  # Uninformative message
+</pre>
+      </div>
+    </div>
+    
+    <div class="code-container">
+      <span class="success-label">Better Approach</span>
+      <div class="code-block success-code">
+<pre>
+try:
+    # Keep the try block focused on the specific risky operation
+    result = process_data(data)
+except (ValueError, KeyError) as e:
+    # Catch only the specific exceptions you expect and can handle
+    print(f"Invalid data format: {e}")
+    # Take appropriate recovery actions
+except Exception as e:
+    # If you must catch broader exceptions, at least log the details
+    logging.error(f"Unexpected error in process_data: {e}", exc_info=True)
+    # And consider re-raising if you can't recover
+    raise
+</pre>
+      </div>
+    </div>
+</div>
+
+<div class="error-box">
+    <h4>Silencing Exceptions</h4>
+    
+    <div class="code-container">
+      <span class="error-label">Error Example</span>
+      <div class="code-block error-code">
+<pre>
+# DON'T do this! Silently ignores errors
+try:
+    data = process_file("important_data.txt")
+except Exception:
+    pass  # Silently continue, losing information about the failure
+</pre>
+      </div>
+    </div>
+    
+    <div class="code-container">
+      <span class="success-label">Better Approach</span>
+      <div class="code-block success-code">
+<pre>
+try:
+    data = process_file("important_data.txt")
+except Exception as e:
+    # Log the error
+    logging.error(f"Failed to process file: {e}")
+    # Provide feedback
+    print("Warning: Could not process data file. Some features may be unavailable.")
+    # Use a sensible fallback if possible
+    data = {}
+</pre>
+      </div>
+    </div>
+</div>
+
+<div class="error-box">
+    <h4>Raising String Exceptions</h4>
+    
+    <div class="code-container">
+      <span class="error-label">Error Example</span>
+      <div class="code-block error-code">
+<pre>
+# DON'T do this! String exceptions are deprecated since Python 2.6 and removed in Python 3
+if value < 0:
+    raise "Value cannot be negative"  # Raises TypeError in Python 3
+</pre>
+      </div>
+    </div>
+    
+    <div class="code-container">
+      <span class="success-label">Better Approach</span>
+      <div class="code-block success-code">
+<pre>
+if value < 0:
+    raise ValueError("Value cannot be negative")  # Proper exception with message
+</pre>
+      </div>
+    </div>
+</div>
+
+<div class="forest-path">
+    <h4>Forest Path Exercise: Implementing Graceful Error Handling</h4>
+    <p>Refactor the following code to use appropriate try-except blocks for graceful error handling. Think about what kinds of exceptions might occur and how to handle them properly.</p>
+    <pre>
+def read_forest_data(filename):
+    file = open(filename, 'r')
+    lines = file.readlines()
+    file.close()
+    
+    tree_count = int(lines[0])
+    average_height = float(lines[1])
+    species_counts = {}
+    
+    for line in lines[2:]:
+        species, count = line.strip().split(':')
+        species_counts[species] = int(count)
+    
+    return {
+        'tree_count': tree_count,
+        'average_height': average_height,
+        'species_counts': species_counts
+    }
+
+def analyze_biodiversity(forest_data):
+    total_trees = forest_data['tree_count']
+    species_count = len(forest_data['species_counts'])
+    biodiversity_index = species_count / total_trees
+    
+    dominant_species = None
+    max_count = 0
+    
+    for species, count in forest_data['species_counts'].items():
+        if count > max_count:
+            dominant_species = species
+            max_count = count
+    
+    return {
+        'biodiversity_index': biodiversity_index,
+        'dominant_species': dominant_species,
+        'dominant_percentage': (max_count / total_trees) * 100
+    }
+
+# Main functionality
+filename = input("Enter the forest data filename: ")
+forest_data = read_forest_data(filename)
+biodiversity = analyze_biodiversity(forest_data)
+
+print(f"Biodiversity Analysis Results:")
+print(f"Biodiversity Index: {biodiversity['biodiversity_index']:.4f}")
+print(f"Dominant Species: {biodiversity['dominant_species']}")
+print(f"Dominant Species Percentage: {biodiversity['dominant_percentage']:.1f}%")
+    </pre>
+    <p>Consider:</p>
+    <ol>
+        <li>What exceptions could occur in each function?</li>
+        <li>How should each exception be handled for a good user experience?</li>
+        <li>What default values or fallback behaviors make sense?</li>
+        <li>Where could you use context managers to improve the code?</li>
+        <li>How would you communicate errors to the user?</li>
+    </ol>
+</div>
+
+<p>By mastering try-except blocks and their related constructs, you gain the ability to write code that navigates gracefully around obstacles rather than crashing into them. Like a forest creature that adapts to changing conditions, your programs become more resilient and capable of continuing their journey even when unexpected situations arise.</p>
+
+<div class="driftpaw-section">
+    <p>~ Remember, little ones, that exceptions are not failures but opportunities for graceful adaptation... When we catch them gently in our try-except hammocks, we transform potential crashes into gentle course corrections... ~</p>
+    
+    <p>~ The forest doesn't fear the fallen tree or the sudden rainstorm—it incorporates these events into its flow of life. Similarly, robust code doesn't pretend errors won't happen, but prepares thoughtfully for their arrival... ~</p>
+</div>
             <h2><span class="emoji">🦔</span>8.3 Custom Exceptions for Specific Scenarios</h2>
             
             <!-- Section 8.3 content will go here -->
